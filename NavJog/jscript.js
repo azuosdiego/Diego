@@ -3,6 +3,9 @@ var velT;
 var tamTelaW, tamTelaH;
 var jogo;
 var frames;
+var contBombas, painelContBombas, velB, tmpCriaBomba;
+var bombasTotal;
+var vidaPlaneta;
 
 
 function teclaDw(){
@@ -27,10 +30,44 @@ function teclaUp(){
     if ((tecla==38) || (tecla==40)){
         diryJ=0;
     }
-    if ((tecla==37) || (tecla==39)){
+    if ((tecla==37) || (tecla==39)){//esquerda
         dirxJ=0;
     }
 }
+
+function criaBomba(){
+    if (jogo){
+        var y=0;
+        var x=Math.random()*tamTelaW; //posição da bomba de 0 à largura da tela
+        var bomba=document.createElement("div");
+        var att1=document.createAttribute("class");
+        var att2=document.createAttribute("style");
+        att1.value="bomba";
+        att2.value="top:"+y+"px; left:"+x+"px;";
+        bomba.setAttributeNode(att1);
+        bomba.setAttributeNode(att2);
+        document.body.appendChild(bomba);
+        contBombas--;
+    }
+}
+
+function controlaBomba(){
+    bombasTotal=document.getElementsByClassName("bomba");
+    var tam=bombasTotal.length;
+    for(var i=0;i<tam;i++){
+        if(bombasTotal[i]){
+            var pi=bombasTotal[i].offsetTop;
+            pi+=velB;
+            bombasTotal[i].style.top=pi+"px";
+            if(pi>tamTelaH){
+                vidaPlaneta-=10;
+                bombasTotal[i].remove();
+            }
+        }
+    }
+}
+
+
 function atira(x,y){
     var t=document.createElement("div");
     var att1=document.createAttribute("class");
@@ -50,12 +87,36 @@ function controleTiros(){
             var pt=tiros[i].offsetTop; 
             pt-=velT;
             tiros[i].style.top=pt+"px";
+            colisaoTiroBomba(tiros[i]);
             if(pt<0){
                 tiros[i].remove();
             }
         }
     }
 }
+
+function colisaoTiroBomba(tiro){
+    var tam=bombasTotal.length;
+    for(var i=0;i<tam;i++){
+        if(bombasTotal[i]){
+            if(
+                (
+                    (tiro.offsetTop<=(bombasTotal[i].offsetTop+38))&& //tiro com parte de baixo da bomba
+                    ((tiro.offsetTop+6)>=(bombasTotal[i].offsetTop)) //tipo com parte de cima da bomba
+                )
+                &&
+                (
+                    (tiro.offsetLeft<=(bombasTotal[i].offsetlLeft+26))&& //Esquerda do tiro com a parte direita da bomba
+                    ((tiro.offsetLeft+6)>=(bombasTotal[i].offsetLeft)) //Direita do tiro com a parte esquerda da bomba
+                )
+            ){
+                bombasTotal[i].remove();
+                tiro.remove(); 
+            }
+        }
+    }
+}
+
 
 function controlaJogador(){
     pjy+=diryJ*velJ;
@@ -70,6 +131,7 @@ function gameLoop(){
         //Funções de controle
         controlaJogador();
         controleTiros();
+        controlaBomba();
     }
     frames=requestAnimationFrame(gameLoop);
 }
@@ -89,6 +151,15 @@ function inicia(){
     jog=document.getElementById("naveJog");
     jog.style.top=pjy+"px";
     jog.style.left=pjx+"px";
+
+    //Controle das bombas
+    clearInterval(tmpCriaBomba); //limpa o intervalo
+    contBombas=150;
+    velB=2;
+    tmpCriaBomba=setInterval(criaBomba, 1900);
+
+    //Controle do Planeta
+    vidaPlaneta=200;
 
     gameLoop();
 
