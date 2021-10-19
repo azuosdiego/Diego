@@ -7,10 +7,11 @@ body{
 }
 
 .naveJog{
-    width: 60px;
-    height: 59px;
+    width: 70px;
+    height: 88px;
     background-image: url("nave_jog.gif");
     position: absolute;
+    z-index: -1;
 }
 
 .telaMsg{
@@ -45,8 +46,20 @@ body{
 }
 
 .bomba{
-    width: 26px;
-    height: 38px;
-    background-image: url("bomba.gif");
+    width: 23px;
+    height: 37px;
+    background-image: url("bomba.png");
+    position: absolute;
+}
+
+.explosaoChao{
+    width: 100px;
+    height: 100px;
+    position: absolute;
+}
+
+.explosaoAr{
+    width: 60px;
+    height: 60px;
     position: absolute;
 }

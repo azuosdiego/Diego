@@ -6,7 +6,7 @@ var frames;
 var contBombas, painelContBombas, velB, tmpCriaBomba;
 var bombasTotal;
 var vidaPlaneta;
-
+var ie,isom;
 
 function teclaDw(){
     var tecla=event.keyCode;
@@ -21,7 +21,7 @@ function teclaDw(){
         dirxJ=1;
     }
     if (tecla==32){//barra espaco / tiro
-        atira(pjx+28, pjy);
+        atira(pjx+32, pjy);
     }
 }
 
@@ -37,13 +37,13 @@ function teclaUp(){
 
 function criaBomba(){
     if (jogo){
-        var y=0;
+        var y= tamTelaW.value;  //bombas aparecem um pouco abaixo da margem superior
         var x=Math.random()*tamTelaW; //posição da bomba de 0 à largura da tela
         var bomba=document.createElement("div");
         var att1=document.createAttribute("class");
         var att2=document.createAttribute("style");
         att1.value="bomba";
-        att2.value="top:"+y+"px; left:"+x+"px;";
+        att2.value="top:"+y+"px;left:"+x+"px;";
         bomba.setAttributeNode(att1);
         bomba.setAttributeNode(att2);
         document.body.appendChild(bomba);
@@ -54,19 +54,19 @@ function criaBomba(){
 function controlaBomba(){
     bombasTotal=document.getElementsByClassName("bomba");
     var tam=bombasTotal.length;
-    for(var i=0;i<tam;i++){
+       for(var i=0;i<tam;i++){
         if(bombasTotal[i]){
             var pi=bombasTotal[i].offsetTop;
             pi+=velB;
             bombasTotal[i].style.top=pi+"px";
             if(pi>tamTelaH){
                 vidaPlaneta-=10;
+                criaExplosao(2,bombasTotal[i].offsetLeft,null);
                 bombasTotal[i].remove();
             }
         }
     }
 }
-
 
 function atira(x,y){
     var t=document.createElement("div");
@@ -82,7 +82,7 @@ function atira(x,y){
 function controleTiros(){
     var tiros=document.getElementsByClassName("tiroJog");
     var tam=tiros.length;
-    for(var i=0; i<tam;i++){
+    for(var i=0;i<tam;i++){
         if(tiros[i]){
             var pt=tiros[i].offsetTop; 
             pt-=velT;
@@ -98,18 +98,19 @@ function controleTiros(){
 function colisaoTiroBomba(tiro){
     var tam=bombasTotal.length;
     for(var i=0;i<tam;i++){
-        if(bombasTotal[i]){
+        if(bombasTotal[i]){ 
             if(
                 (
-                    (tiro.offsetTop<=(bombasTotal[i].offsetTop+38))&& //tiro com parte de baixo da bomba
+                    (tiro.offsetTop<=(bombasTotal[i].offsetTop+37))&& //tiro com parte de baixo da bomba
                     ((tiro.offsetTop+6)>=(bombasTotal[i].offsetTop)) //tipo com parte de cima da bomba
                 )
                 &&
                 (
-                    (tiro.offsetLeft<=(bombasTotal[i].offsetlLeft+26))&& //Esquerda do tiro com a parte direita da bomba
+                    (tiro.offsetLeft<=(bombasTotal[i].offsetLeft+23))&& //Esquerda do tiro com a parte direita da bomba
                     ((tiro.offsetLeft+6)>=(bombasTotal[i].offsetLeft)) //Direita do tiro com a parte esquerda da bomba
                 )
             ){
+                criaExplosao(1,bombasTotal[i].offsetLeft, bombasTotal[i].offsetTop);
                 bombasTotal[i].remove();
                 tiro.remove(); 
             }
@@ -117,6 +118,49 @@ function colisaoTiroBomba(tiro){
     }
 }
 
+function criaExplosao(tipo,x,y){ //Tipo1=ExplosaoAr | Tipo2=ExplosaoChao
+    if(document.getElementById("explosao"+(ie-2))){
+        document.getElementById("explosao"+(ie-2)).remove();
+    }
+
+    var explosao=document.createElement("div");
+    var img=document.createElement("img");
+    var som=document.createElement("audio");
+    //Attributos para Div
+    var att1=document.createAttribute("class");
+    var att2=document.createAttribute("style");
+    var att3=document.createAttribute("id");
+    //Atributo para imagem
+    var att4=document.createAttribute("src");
+    //Atributos para audio
+    var att5=document.createAttribute("src");
+    var att6=document.createAttribute("id");
+
+    att3.value="explosao"+ie;
+    if(tipo==1){
+        att1.value="explosaoAr";
+        att2.value="top:"+y+"px;left:"+x+"px;";
+        att4.value="explo_bomba.gif?"+new Date();
+    }else{
+        att1.value="explosaoChao";
+        att2.value="top:"+(tamTelaH-37)+"px;left:"+(x-23)+"px;"; //tamanho da bomba
+        att4.value="explo_bomba_terra.gif?"+new Date();
+    }
+    att5.value="explosao.mp3?"+new Date();
+    att6.value="som"+isom;
+    explosao.setAttributeNode(att1);
+    explosao.setAttributeNode(att2);
+    explosao.setAttributeNode(att3);
+    img.setAttributeNode(att4);
+    som.setAttributeNode(att5);
+    som.setAttributeNode(att6);
+    explosao.appendChild(img);
+    explosao.appendChild(som);
+    document.body.appendChild(explosao);
+    document.getElementById("som"+isom).play();  
+    ie++;
+    isom++;
+}
 
 function controlaJogador(){
     pjy+=diryJ*velJ;
@@ -124,7 +168,6 @@ function controlaJogador(){
     jog.style.top=pjy+"px";
     jog.style.left=pjx+"px";
 }
-
 
 function gameLoop(){
     if(jogo){
@@ -147,7 +190,7 @@ function inicia(){
     dirxJ=diryJ=0;
     pjx=tamTelaW/2;
     pjy=tamTelaH/2;
-    velJ=velT=5;
+    velJ=velT=6;
     jog=document.getElementById("naveJog");
     jog.style.top=pjy+"px";
     jog.style.left=pjx+"px";
@@ -155,14 +198,16 @@ function inicia(){
     //Controle das bombas
     clearInterval(tmpCriaBomba); //limpa o intervalo
     contBombas=150;
-    velB=2;
+    velB=1;
     tmpCriaBomba=setInterval(criaBomba, 1900);
 
     //Controle do Planeta
     vidaPlaneta=200;
 
+    //Controle de Explosão
+    ie=isom=0;
+    
     gameLoop();
-
 }
 
 window.addEventListener("load", inicia);
